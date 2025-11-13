@@ -19,3 +19,6 @@ COPY package*.json ./
 EXPOSE 3000
 # Ao iniciar, aplica migrations e sobe a app
 CMD ["sh", "-lc", "npx prisma migrate deploy && node dist/index.js"]
+
+
+# https://panel.smarttcode.com.br/api/stacks/webhooks/1f5b0fe4-8c25-45ea-bab1-5fa3a29c5c32
