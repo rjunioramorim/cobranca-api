@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String         @id @default(uuid())
+  nome          String         @db.VarChar(255)
+  slug          String         @unique @db.VarChar(100) // Identificador único do tenant
+  ativo         Boolean        @default(true)
+  config        Json? // Configurações específicas do tenant
+  apiTokenId    String?        @unique @db.VarChar(100) // ID público do token de integração
+  apiTokenHash  String?        @db.VarChar(255) // Hash do token de integração (bcrypt)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  users         User[]
+  clientes      Cliente[]
+  cobrancas     Cobranca[]
+  configuracoes Configuracao[]
+  mensagens     Mensagem[]
+
+  @@index([slug])
+  @@index([ativo])
+  @@index([apiTokenId])
+  @@map("tenants")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  tenantId      String? // Usuário pertence a um tenant (null para admin total)
+  email         String         @db.VarChar(255)
+  senha         String // Hash da senha (bcrypt)
+  nome          String         @db.VarChar(255)
+  ativo         Boolean        @default(true)
+  role          String         @default("USER") @db.VarChar(20) // USER, ADMIN
+  isAdmin       Boolean        @default(false) // Flag para identificar administrador total
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenant        Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  refreshTokens RefreshToken[]
+
+  @@unique([tenantId, email]) // Email único por tenant (ou único global se tenantId for null)
+  @@index([tenantId])
+  @@index([email])
+  @@index([tenantId, email])
+  @@map("users")
+}
+
+model Cliente {
+  id            String     @id @default(uuid())
+  tenantId      String // ID do tenant (empresa)
+  nome          String     @db.VarChar(255)
+  telefone      String     @db.VarChar(20)
+  valor         Float
+  diaVencimento Int // Dia do mês (1-31)
+  ativo         Boolean    @default(true)
+  observacoes   String?    @db.Text
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cobrancas     Cobranca[]
+  mensagens     Mensagem[]
+
+  @@index([tenantId])
+  @@index([ativo])
+  @@index([telefone])
+  @@index([tenantId, ativo])
+  @@index([tenantId, telefone])
+  @@map("clientes")
+}
+
+model Cobranca {
+  id            String    @id @default(uuid())
+  tenantId      String // ID do tenant (empresa)
+  clienteId     String
+  valor         Float
+  vencimento    DateTime
+  status        String    @default("PENDENTE") @db.VarChar(20) // PENDENTE, PAGO, ATRASADO
+  pixQrCode     String?   @db.Text
+  pixCopiaECola String?   @db.Text
+  pagoEm        DateTime?
+  observacoes   String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  mensagens     Mensagem[]
+
+  @@index([tenantId])
+  @@index([clienteId])
+  @@index([vencimento])
+  @@index([status])
+  @@index([tenantId, vencimento])
+  @@index([tenantId, status])
+  @@index([vencimento, status])
+  @@map("cobrancas")
+}
+
+model Configuracao {
+  id        String   @id @default(uuid())
+  tenantId  String // ID do tenant (empresa)
+  chave     String   @db.VarChar(100)
+  valor     String   @db.Text
+  descricao String?  @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, chave]) // Chave única por tenant
+  @@index([tenantId])
+  @@index([chave])
+  @@index([tenantId, chave])
+  @@map("configuracoes")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique @db.VarChar(500) // Token único
+  expiresAt DateTime // Data de expiração do refresh token
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Mensagem {
+  id            String    @id @default(uuid())
+  tenantId      String // ID do tenant (empresa)
+  cobrancaId    String? // ID da cobrança relacionada (opcional)
+  clienteId     String // ID do cliente
+  telefone      String    @db.VarChar(20) // Telefone de destino
+  mensagem      String    @db.Text // Conteúdo da mensagem
+  status        String    @default("AGENDADA") @db.VarChar(20) // AGENDADA, ENVIADA, FALHOU, CANCELADA
+  dataAgendamento DateTime? // Data/hora agendada para envio
+  dataEnvio     DateTime? // Data/hora em que foi enviada
+  erro          String?   @db.Text // Mensagem de erro se falhou
+  tentativas    Int       @default(0) // Número de tentativas de envio
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  cobranca      Cobranca? @relation(fields: [cobrancaId], references: [id], onDelete: SetNull)
+  cliente       Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clienteId])
+  @@index([cobrancaId])
+  @@index([status])
+  @@index([dataAgendamento])
+  @@index([dataEnvio])
+  @@index([tenantId, status])
+  @@index([tenantId, dataEnvio])
+  @@map("mensagens")
+}
