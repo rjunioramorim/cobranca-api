@@ -109,9 +109,9 @@ Resposta esperada:
 
 ## 📚 Próximos Passos
 
-- [ ] Implementar CRUD de clientes
-- [ ] Implementar CRUD de cobranças
-- [ ] Integração com API Pix
-- [ ] Integração com WhatsApp
-- [ ] Automação de envio de mensagens
+- [x] Implementar CRUD de clientes
+- [x] Implementar CRUD de cobranças
+- [x] Integração com API Pix
+- [x] Integração com WhatsApp
+- [x] Automação de envio de mensagens
 
