@@ -108,7 +108,6 @@ Resposta esperada:
 ```
 
 ## 📚 Próximos Passos
-
 - [x] Implementar CRUD de clientes
 - [x] Implementar CRUD de cobranças
 - [x] Integração com API Pix
