@@ -1,5 +1,5 @@
 # builder
-FROM node:20 AS builder
+FROM node:24 AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -11,7 +11,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # runtime
-FROM node:20
+FROM node:24
 WORKDIR /app
 ENV NODE_ENV=production
 
