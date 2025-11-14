@@ -1,24 +1,47 @@
-# builder
-FROM node:24 AS builder
+# ============================================================
+# 1) Builder – compila, instala devDeps e gera dist/
+# ============================================================
+FROM node:24-slim AS builder
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --omit=dev
+# Habilitar cache do npm via BuildKit:
+# (reduce build time drastically)
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g npm@latest
 
-COPY prisma ./prisma
+ENV NODE_ENV=development
+
+# Copia apenas manifests para permitir cache do `npm ci`
+COPY package*.json ./
+
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# Agora copia o restante do código
 COPY . .
+
+# Prisma generate
 RUN npx prisma generate
+
+# Build do projeto (tsup)
 RUN npm run build
 
-# runtime
-FROM node:24
+
+# ============================================================
+# 2) Runtime super leve – Distroless (node 18+ compat)
+# ============================================================
+FROM gcr.io/distroless/nodejs24-debian12 AS runtime
 WORKDIR /app
+
 ENV NODE_ENV=production
 
-COPY --from=builder /app/node_modules ./node_modules
+# Copiar apenas o necessário
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY package*.json ./
 
 EXPOSE 3333
-CMD ["sh", "-lc", "npx prisma migrate deploy && node dist/index.js"]
+
+# Distroless roda direto o Node
+CMD ["dist/index.js"]
