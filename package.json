@@ -37,6 +37,8 @@
     "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
+    "lts": "^2.0.0",
+    "node-24": "^1.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -55,4 +57,3 @@
     "typescript": "^5.9.3"
   }
 }
-
