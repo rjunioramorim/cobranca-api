@@ -4,9 +4,12 @@
   "description": "API de cobrança automática via WhatsApp + Pix",
   "main": "dist/index.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --out-dir dist --format cjs --dts",
+    "build": "tsup src/index.ts --out-dir dist --format esm --dts",
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
     "format": "biome format --write .",
@@ -37,14 +40,12 @@
     "bcryptjs": "^2.4.3",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
-    "lts": "^2.0.0",
-    "node-24": "^1.0.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.4",
     "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^24.10.0",
+    "@types/node": "^20.17.6",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
     "eslint": "^9.39.1",

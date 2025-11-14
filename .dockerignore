@@ -1,0 +1,51 @@
+# Dependências
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+# NÃO ignore package-lock.json - ele é necessário!
+
+# Build
+dist
+*.tsbuildinfo
+
+# Testes
+coverage
+.nyc_output
+*.test.ts
+*.spec.ts
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Documentação
+README.md
+LICENSE
+*.md
+
+# Logs
+logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

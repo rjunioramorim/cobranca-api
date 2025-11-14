@@ -1,47 +1,65 @@
 # ============================================================
-# 1) Builder – compila, instala devDeps e gera dist/
+# 1) Builder – compila e instala dependências
 # ============================================================
-FROM node:24-slim AS builder
+FROM node:20-slim AS builder
+
 WORKDIR /app
 
-# Habilitar cache do npm via BuildKit:
-# (reduce build time drastically)
-RUN --mount=type=cache,target=/root/.npm \
-    npm install -g npm@latest
+# Instalar dependências do sistema necessárias
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g npm@latest
 
 ENV NODE_ENV=development
 
-# Copia apenas manifests para permitir cache do `npm ci`
+# Copiar package files
 COPY package*.json ./
 
-RUN --mount=type=cache,target=/root/.npm \
-    npm install --omit=dev
+# Instalar todas as dependências
+RUN npm install --legacy-peer-deps
 
-# Agora copia o restante do código
+# Copiar código fonte
 COPY . .
 
 # Prisma generate
 RUN npx prisma generate
 
-# Build do projeto (tsup)
+# Build do projeto
 RUN npm run build
 
+# Remover devDependencies após build
+RUN npm prune --production --legacy-peer-deps
 
 # ============================================================
-# 2) Runtime super leve – Distroless (node 18+ compat)
+# 2) Runtime – Imagem final
 # ============================================================
-FROM gcr.io/distroless/nodejs24-debian12 AS runtime
+FROM node:20-slim AS runtime
+
 WORKDIR /app
+
+# Instalar apenas OpenSSL (necessário para Prisma)
+RUN apt-get update && apt-get install -y \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Criar usuário não-root
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 ENV NODE_ENV=production
 
-# Copiar apenas o necessário
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
-COPY package*.json ./
+# Copiar apenas produção (após prune)
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+COPY --chown=nodejs:nodejs package*.json ./
+
+USER nodejs
 
 EXPOSE 3333
 
-# Distroless roda direto o Node
-CMD ["dist/index.js"]
+CMD ["node", "dist/index.js"]

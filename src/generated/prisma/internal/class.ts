@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "C:\\Users\\raimundo.amorim\\Documents\\JR\\automacao\\cobrancas-zap\\backend\\src\\generated\\prisma",
+      "value": "C:\\Users\\raimundo.amorim\\projetos\\cobranca-api\\src\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -37,7 +37,7 @@ const config: runtime.GetPrismaClientConfig = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\raimundo.amorim\\Documents\\JR\\automacao\\cobrancas-zap\\backend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\raimundo.amorim\\projetos\\cobranca-api\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
@@ -47,6 +47,7 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
