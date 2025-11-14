@@ -15,7 +15,7 @@ ENV NODE_ENV=development
 COPY package*.json ./
 
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+    npm install --omit=dev
 
 # Agora copia o restante do código
 COPY . .
