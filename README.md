@@ -4,7 +4,7 @@ Sistema de gestão e automação de cobranças recorrentes com integração Pix 
 
 ## 🚀 Tecnologias
 
-- **Node.js 20+** com TypeScript
+- **Node.js 20+** com TypeScript 
 - **Fastify** - Framework web rápido
 - **Prisma** - ORM moderno
 - **PostgreSQL** - Banco de dados
